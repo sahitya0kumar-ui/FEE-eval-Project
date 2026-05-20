@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Pixel — Virtual Pet Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<!-- ════════════════════════════════════════════════════════
+     TOAST
+════════════════════════════════════════════════════════ -->
+<div id="toast" role="alert" aria-live="polite">
+  <span id="toast-icon">✅</span><span id="toast-msg">Done!</span>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════ -->
+<!-- Event Modal -->
+<div class="modal-overlay" id="modal-event" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>📅 Add Event</h3><p>Schedule something on your calendar.</p>
+    <div class="f-group"><label class="f-label">Title</label><input class="f-input" id="ev-title" placeholder="Meeting, birthday…"></div>
+    <div class="g2">
+      <div class="f-group"><label class="f-label">Date</label><input class="f-input" id="ev-date" type="date"></div>
+      <div class="f-group"><label class="f-label">Time</label><input class="f-input" id="ev-time" type="time"></div>
+    </div>
+    <div class="f-group"><label class="f-label">Description</label><input class="f-input" id="ev-desc" placeholder="Optional…"></div>
+    <div class="f-group">
+      <label class="f-label">Color</label>
+      <div class="color-pick-row" id="ev-color-row">
+        <div class="cpick selected" style="background:#a855f7" data-c="#a855f7" onclick="pickColor(this,'ev')"></div>
+        <div class="cpick" style="background:#f59e0b" data-c="#f59e0b" onclick="pickColor(this,'ev')"></div>
+        <div class="cpick" style="background:#34d399" data-c="#34d399" onclick="pickColor(this,'ev')"></div>
+        <div class="cpick" style="background:#f87171" data-c="#f87171" onclick="pickColor(this,'ev')"></div>
+        <div class="cpick" style="background:#60a5fa" data-c="#60a5fa" onclick="pickColor(this,'ev')"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-event')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Note Modal -->
+<div class="modal-overlay" id="modal-note" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>💡 New Idea</h3><p>Capture your thought before it slips away.</p>
+    <div class="f-group"><label class="f-label">Title</label><input class="f-input" id="note-title" placeholder="Name it…"></div>
+    <div class="f-group"><label class="f-label">Content</label><textarea class="f-input" id="note-body" rows="3" placeholder="Write your idea…" style="resize:vertical"></textarea></div>
+    <div class="g2">
+      <div class="f-group"><label class="f-label">Emoji</label><input class="f-input" id="note-emoji" placeholder="💡" maxlength="2"></div>
+      <div class="f-group"><label class="f-label">Tag</label><input class="f-input" id="note-tag" placeholder="work, idea…"></div>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Card Color</label>
+      <div class="color-pick-row" id="note-color-row">
+        <div class="cpick selected" style="background:#1a1133" data-c="#1a1133" onclick="pickColor(this,'note')"></div>
+        <div class="cpick" style="background:#1a2a1a" data-c="#1a2a1a" onclick="pickColor(this,'note')"></div>
+        <div class="cpick" style="background:#2a1a0a" data-c="#2a1a0a" onclick="pickColor(this,'note')"></div>
+        <div class="cpick" style="background:#1a1a2e" data-c="#1a1a2e" onclick="pickColor(this,'note')"></div>
+        <div class="cpick" style="background:#2a0e2a" data-c="#2a0e2a" onclick="pickColor(this,'note')"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-note')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNote()">Save Idea</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="modal-overlay" id="modal-goal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>🎯 New Goal</h3><p>Set a goal and let Pixel cheer you on!</p>
+    <div class="f-group"><label class="f-label">Goal Name</label><input class="f-input" id="gl-name" placeholder="What do you want to achieve?"></div>
+    <div class="f-group"><label class="f-label">Emoji</label><input class="f-input" id="gl-emoji" placeholder="🎯" maxlength="2"></div>
+    <div class="g2">
+      <div class="f-group"><label class="f-label">Target</label><input class="f-input" id="gl-target" type="number" placeholder="100"></div>
+      <div class="f-group"><label class="f-label">Current Progress</label><input class="f-input" id="gl-progress" type="number" placeholder="0"></div>
+    </div>
+    <div class="f-group"><label class="f-label">Description</label><input class="f-input" id="gl-desc" placeholder="Why does this matter?"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-goal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveGoal()">Create Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Habit Modal -->
+<div class="modal-overlay" id="modal-habit" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>🔥 New Habit</h3><p>Build a habit, build yourself.</p>
+    <div class="f-group"><label class="f-label">Habit Name</label><input class="f-input" id="hb-name" placeholder="Morning meditation…"></div>
+    <div class="f-group"><label class="f-label">Emoji</label><input class="f-input" id="hb-emoji" placeholder="🧘" maxlength="2"></div>
+    <div class="f-group"><label class="f-label">Description</label><input class="f-input" id="hb-desc" placeholder="15 mins every morning"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('modal-habit')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveHabit()">Add Habit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     TOP NAV
+════════════════════════════════════════════════════════ -->
+<nav id="top-nav" aria-label="Main navigation">
+  <div class="nav-logo">🐾 Pixel <span>Assistant</span></div>
+  <div class="nav-links-top" role="menubar">
+    <button class="nav-link-top" onclick="goPage('home')" data-page="home">🏠 Home</button>
+    <button class="nav-link-top" onclick="goPage('budget')" data-page="budget">💰 Budget</button>
+    <button class="nav-link-top" onclick="goPage('calendar')" data-page="calendar">📅 Calendar</button>
+    <button class="nav-link-top" onclick="goPage('todo')" data-page="todo">✅ To-Do</button>
+    <button class="nav-link-top" onclick="goPage('ideas')" data-page="ideas">💡 Ideas</button>
+  </div>
+  <div class="nav-right">
+    <div class="mood-badge" aria-live="polite">
+      <div class="mood-dot"></div>
+      <span id="nav-mood">Pixel is Happy 😊</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════ -->
+<aside id="sidebar" aria-label="Page sidebar">
+  <button class="sb-btn" onclick="goPage('home')" data-page="home" title="Home"><span>🏠</span><span>Home</span></button>
+  <button class="sb-btn" onclick="goPage('budget')" data-page="budget" title="Budget"><span>💰</span><span>Budget</span></button>
+  <button class="sb-btn" onclick="goPage('calendar')" data-page="calendar" title="Calendar"><span>📅</span><span>Cal</span></button>
+  <button class="sb-btn" onclick="goPage('todo')" data-page="todo" title="To-Do"><span>✅</span><span>Todo</span></button>
+  <button class="sb-btn" onclick="goPage('ideas')" data-page="ideas" title="Ideas"><span>💡</span><span>Ideas</span></button>
+  <div class="sb-div"></div>
+  <button class="sb-btn" onclick="goPage('habits')" data-page="habits" title="Habits"><span>🔥</span><span>Habits</span></button>
+  <button class="sb-btn" onclick="goPage('goals')" data-page="goals" title="Goals"><span>🎯</span><span>Goals</span></button>
+  <button class="sb-btn" onclick="goPage('focus')" data-page="focus" title="Focus"><span>⏱️</span><span>Focus</span></button>
+  <button class="sb-btn" onclick="goPage('mood')" data-page="mood" title="Mood"><span>😊</span><span>Mood</span></button>
+  <div class="sb-div"></div>
+  <button class="sb-btn" onclick="goPage('shopping')" data-page="shopping" title="Shopping"><span>🛒</span><span>Shop</span></button>
+  <button class="sb-btn" onclick="goPage('profile')" data-page="profile" title="Profile"><span>👤</span><span>Me</span></button>
+</aside>
+
+<!-- ════════════════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════════════════ -->
+<div id="app-shell">
+
+  <!-- ════ PAGE 1 — HOME ════ -->
+  <div id="p-home" class="page" role="main">
+    <div class="home-layout">
+      <!-- LEFT: Pet + Chat -->
+      <div>
+        <div class="pet-stage fade-in">
+          <div class="pet-wrap">
+            <svg class="pet-svg-wrap" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pixel the animated cat">
+              <defs>
+                <radialGradient id="bG" cx="50%" cy="40%"><stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#7c3aed"/></radialGradient>
+                <radialGradient id="blG" cx="50%" cy="50%"><stop offset="0%" stop-color="#ede9fe"/><stop offset="100%" stop-color="#c4b5fd"/></radialGradient>
+              </defs>
+              <g class="pet-body">
+                <ellipse class="pet-tail-anim" cx="152" cy="132" rx="21" ry="10" fill="#9333ea" opacity=".9" transform="rotate(-20,152,132)"/>
+                <ellipse cx="100" cy="122" rx="57" ry="51" fill="url(#bG)"/>
+                <ellipse cx="100" cy="128" rx="31" ry="27" fill="url(#blG)" opacity=".65"/>
+                <polygon class="pet-ear-l-anim" points="63,74 49,44 81,62" fill="#9333ea"/>
+                <polygon points="67,70 55,48 77,62" fill="#f0abfc"/>
+                <polygon points="137,74 151,44 119,62" fill="#9333ea"/>
+                <polygon points="133,70 145,48 123,62" fill="#f0abfc"/>
+                <circle cx="100" cy="96" r="43" fill="url(#bG)"/>
+                <ellipse cx="86" cy="92" rx="13" ry="13" fill="white"/>
+                <ellipse cx="114" cy="92" rx="13" ry="13" fill="white"/>
+                <ellipse class="pet-eye-l" cx="88" cy="93" rx="8" ry="8" fill="#1e1b4b"/>
+                <ellipse class="pet-eye-r" cx="116" cy="93" rx="8" ry="8" fill="#1e1b4b"/>
+                <circle cx="91" cy="89" r="2.5" fill="white" opacity=".9"/>
+                <circle cx="119" cy="89" r="2.5" fill="white" opacity=".9"/>
+                <ellipse cx="100" cy="104" rx="5" ry="3.5" fill="#7c3aed"/>
+                <path d="M92,111 Q100,118 108,111" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="108" y1="106" x2="132" y2="102" stroke="#e9d5ff" stroke-width="1.5" opacity=".6"/>
+                <line x1="108" y1="109" x2="134" y2="108" stroke="#e9d5ff" stroke-width="1.5" opacity=".6"/>
+                <line x1="92" y1="106" x2="68" y2="102" stroke="#e9d5ff" stroke-width="1.5" opacity=".6"/>
+                <line x1="92" y1="109" x2="66" y2="108" stroke="#e9d5ff" stroke-width="1.5" opacity=".6"/>
+                <circle cx="76" cy="106" r="9" fill="#f472b6" opacity=".25"/>
+                <circle cx="124" cy="106" r="9" fill="#f472b6" opacity=".25"/>
+                <ellipse cx="72" cy="162" rx="19" ry="11" fill="#9333ea"/>
+                <ellipse cx="128" cy="162" rx="19" ry="11" fill="#9333ea"/>
+                <circle cx="65" cy="158" r="5" fill="#7c3aed"/><circle cx="72" cy="156" r="5" fill="#7c3aed"/><circle cx="79" cy="158" r="5" fill="#7c3aed"/>
+                <circle cx="121" cy="158" r="5" fill="#7c3aed"/><circle cx="128" cy="156" r="5" fill="#7c3aed"/><circle cx="135" cy="158" r="5" fill="#7c3aed"/>
+                <text x="155" y="66" font-size="15" opacity=".65">✨</text>
+              </g>
+            </svg>
+            <div class="pet-name-display" id="pet-name-display">Pixel</div>
+            <div class="pet-level-display">⭐ Level <span id="pet-level">7</span> Companion</div>
+            <div class="pet-stats">
+              <div class="stat-row"><span class="stat-icon">❤️</span><span class="stat-name">Health</span><div class="stat-bar prog-track"><div class="prog-fill" id="stat-health" style="width:85%;background:linear-gradient(90deg,#f87171,#f43f5e)"></div></div><span class="stat-val" id="stat-health-val">85</span></div>
+              <div class="stat-row"><span class="stat-icon">⚡</span><span class="stat-name">Energy</span><div class="stat-bar prog-track"><div class="prog-fill" id="stat-energy" style="width:70%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div><span class="stat-val" id="stat-energy-val">70</span></div>
+              <div class="stat-row"><span class="stat-icon">😊</span><span class="stat-name">Mood</span><div class="stat-bar prog-track"><div class="prog-fill" id="stat-mood" style="width:90%;background:linear-gradient(90deg,#a855f7,#c084fc)"></div></div><span class="stat-val" id="stat-mood-val">90</span></div>
+              <div class="stat-row"><span class="stat-icon">🧠</span><span class="stat-name">Smart</span><div class="stat-bar prog-track"><div class="prog-fill" id="stat-smart" style="width:60%;background:linear-gradient(90deg,#60a5fa,#818cf8)"></div></div><span class="stat-val" id="stat-smart-val">60</span></div>
+            </div>
+            <div class="pet-stats">
+              <div class="stat-row"><span class="stat-icon">🤝</span><span class="stat-name">Bond</span><div class="stat-bar prog-track"><div class="prog-fill" id="stat-bond" style="width:68%;background:linear-gradient(90deg,#fb7185,#f472b6)"></div></div><span class="stat-val" id="stat-bond-val">68</span></div>
+              <div class="stat-row"><span class="stat-icon">🛡️</span><span class="stat-name">Discipline</span><div class="stat-bar prog-track"><div class="prog-fill" id="stat-discipline" style="width:58%;background:linear-gradient(90deg,#22c55e,#14b8a6)"></div></div><span class="stat-val" id="stat-discipline-val">58</span></div>
+            </div>
+            <div class="pet-actions">
+              <button class="pet-action-btn pa-feed" onclick="feedPet()">🍕 Feed</button>
+              <button class="pet-action-btn pa-play" onclick="playPet()">🎮 Play</button>
+              <button class="pet-action-btn pa-train" onclick="trainPet()">📖 Train</button>
+              <button class="pet-action-btn pa-sleep" onclick="petSleep()">💤 Rest</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-area fade-in" style="animation-delay:.12s">
+          <div class="chat-header">
+            <span class="fw8" style="font-size:13px">💬 Chat with Pixel</span>
+            <span class="badge badge-green" style="font-size:10px">● Online</span>
+          </div>
+          <div class="chat-messages" id="chat-messages" role="log" aria-live="polite"></div>
+          <div class="chat-input-row">
+            <input class="chat-in" id="chat-input" placeholder="Ask Pixel anything… try 'help', 'budget'" aria-label="Chat message" onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="btn btn-primary btn-sm" onclick="sendChat()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Summary -->
+      <div class="summary-col">
+        <div class="card fade-in" style="animation-delay:.08s">
+          <div class="sc-head">
+            <span class="sc-head-title">📊 Today's Overview</span>
+            <span class="badge badge-purple" id="today-date-badge"></span>
+          </div>
+          <div class="ov-grid">
+            <div class="ov-item"><div class="ov-val text-green" id="ov-tasks-done">0</div><div class="ov-label">Tasks Done</div></div>
+            <div class="ov-item"><div class="ov-val text-gold" id="ov-budget">₹0</div><div class="ov-label">Spent</div></div>
+            <div class="ov-item"><div class="ov-val" style="color:var(--blue)" id="ov-events">0</div><div class="ov-label">Events</div></div>
+            <div class="ov-item"><div class="ov-val" style="color:var(--pink)" id="ov-habits">0</div><div class="ov-label">Habits Done</div></div>
+          </div>
+        </div>
+
+        <div class="card fade-in" style="animation-delay:.16s">
+          <div class="sc-head">
+            <span class="sc-head-title">✅ Today's Tasks</span>
+            <button class="btn btn-primary btn-sm" onclick="goPage('todo')">View All</button>
+          </div>
+          <div id="home-tasks" style="display:flex;flex-direction:column;gap:7px;"></div>
+        </div>
+
+        <div class="fade-in" style="animation-delay:.24s">
+          <div class="text-xs text-muted fw8" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;">⚡ Quick Actions</div>
+          <div class="quick-grid">
+            <div class="quick-card" onclick="goPage('budget')"><div class="qc-icon" style="background:rgba(52,211,153,.1)">💰</div><div><div class="qc-title">Budget</div><div class="qc-sub">Track spending</div></div></div>
+            <div class="quick-card" onclick="goPage('calendar')"><div class="qc-icon" style="background:rgba(96,165,250,.1)">📅</div><div><div class="qc-title">Calendar</div><div class="qc-sub">Add events</div></div></div>
+            <div class="quick-card" onclick="goPage('todo')"><div class="qc-icon" style="background:rgba(168,85,247,.1)">✅</div><div><div class="qc-title">To-Do</div><div class="qc-sub">Manage tasks</div></div></div>
+            <div class="quick-card" onclick="goPage('ideas')"><div class="qc-icon" style="background:rgba(245,158,11,.1)">💡</div><div><div class="qc-title">Ideas</div><div class="qc-sub">Capture thoughts</div></div></div>
+            <div class="quick-card" onclick="goPage('habits')"><div class="qc-icon" style="background:rgba(248,113,113,.1)">🔥</div><div><div class="qc-title">Habits</div><div class="qc-sub">Build streaks</div></div></div>
+            <div class="quick-card" onclick="goPage('focus')"><div class="qc-icon" style="background:rgba(244,114,182,.1)">⏱️</div><div><div class="qc-title">Focus</div><div class="qc-sub">Pomodoro</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 2 — BUDGET ════ -->
+  <div id="p-budget" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Finance</div>
+      <h1 class="s-title">💰 Budget Tracker</h1>
+      <p class="s-desc">Track every rupee. Know where your money goes.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--accent3),#0ea5e9)"></div><div class="kpi-icon">💵</div><div class="kpi-label">Income</div><div class="kpi-val text-green" id="b-income">₹0</div><div class="kpi-sub">This month</div></div>
+      <div class="kpi-card"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--accent4),#f43f5e)"></div><div class="kpi-icon">📤</div><div class="kpi-label">Expenses</div><div class="kpi-val text-red" id="b-expenses">₹0</div><div class="kpi-sub">Total spent</div></div>
+      <div class="kpi-card"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--accent),var(--pink))"></div><div class="kpi-icon">🏦</div><div class="kpi-label">Balance</div><div class="kpi-val text-accent" id="b-balance">₹0</div><div class="kpi-sub">Remaining</div></div>
+      <div class="kpi-card"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--accent2),#ef4444)"></div><div class="kpi-icon">📊</div><div class="kpi-label">Transactions</div><div class="kpi-val text-gold" id="b-count">0</div><div class="kpi-sub">Total logged</div></div>
+    </div>
+    <div class="budget-layout">
+      <div>
+        <div class="tx-table">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg3);">
+            <span class="fw8" style="font-size:13px">📋 Transactions</span>
+            <div style="display:flex;gap:7px;">
+              <button class="btn btn-primary btn-sm" id="bf-all" onclick="filterBudget('all')">All</button>
+              <button class="btn btn-secondary btn-sm" id="bf-income" onclick="filterBudget('income')">Income</button>
+              <button class="btn btn-secondary btn-sm" id="bf-expense" onclick="filterBudget('expense')">Expense</button>
+            </div>
+          </div>
+          <div class="tx-table-head"><span></span><span>Description</span><span>Category</span><span>Amount</span><span></span></div>
+          <div id="tx-list" role="list"></div>
+        </div>
+      </div>
+      <div>
+        <div class="add-tx-card">
+          <div class="add-tx-head"><h3>+ Add Transaction</h3><p>Log your income or expense</p></div>
+          <div class="add-tx-body">
+            <div class="f-group">
+              <label class="f-label">Type</label>
+              <div class="tx-type-row">
+                <button class="btn btn-danger btn-sm w-full" id="tx-type-exp" onclick="setTxType('expense',this)">− Expense</button>
+                <button class="btn btn-secondary btn-sm w-full" id="tx-type-inc" onclick="setTxType('income',this)">+ Income</button>
+              </div>
+            </div>
+            <div class="f-group"><label class="f-label">Amount ()</label><input class="f-input" id="tx-amount" type="number" placeholder="0.00" min="0" step="0.01"></div>
+            <div class="f-group"><label class="f-label">Description</label><input class="f-input" id="tx-desc" placeholder="What was this for?"></div>
+            <div class="f-group"><label class="f-label">Category</label>
+              <select class="f-input" id="tx-cat">
+                <option>🏠 Housing</option><option>🍔 Food</option><option>🚗 Transport</option>
+                <option>💊 Health</option><option>🎮 Entertainment</option><option>🛍️ Shopping</option>
+                <option>📚 Education</option><option>💼 Work/Income</option><option>💰 Savings</option><option>📌 Other</option>
+              </select>
+            </div>
+            <div class="f-group"><label class="f-label">Date</label><input class="f-input" id="tx-date" type="date"></div>
+            <button class="btn btn-primary w-full" onclick="addTransaction()">Record Transaction →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 3 — CALENDAR ════ -->
+  <div id="p-calendar" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Schedule</div>
+      <h1 class="s-title">📅 Calendar</h1>
+      <p class="s-desc">Plan your days, weeks and months with Pixel.</p>
+    </div>
+    <div class="cal-layout">
+      <div>
+        <div class="cal-card">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)" aria-label="Prev month">‹</button>
+            <div class="cal-month-title" id="cal-title" aria-live="polite"></div>
+            <button class="cal-nav-btn" onclick="changeMonth(1)" aria-label="Next month">›</button>
+          </div>
+          <div class="cal-day-labels"><div class="cal-dl">Sun</div><div class="cal-dl">Mon</div><div class="cal-dl">Tue</div><div class="cal-dl">Wed</div><div class="cal-dl">Thu</div><div class="cal-dl">Fri</div><div class="cal-dl">Sat</div></div>
+          <div class="cal-grid-cells" id="cal-grid" role="grid"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex-b mb-sm" style="margin-bottom:12px;">
+          <span class="fw8" id="cal-selected-label" style="font-size:13px">Events</span>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-event')">+ Add Event</button>
+        </div>
+        <div class="events-panel" id="events-panel">
+          <div class="text-sm text-muted">Click a day to see events.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 4 — TO-DO ════ -->
+  <div id="p-todo" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Tasks</div>
+      <h1 class="s-title">✅ To-Do Lists</h1>
+      <p class="s-desc">Get things done with Pixel's help.</p>
+    </div>
+    <div class="todo-layout">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="todo-list-card">
+          <div class="tl-head">📋 My Lists <button class="btn btn-primary btn-sm" onclick="addTodoList()">+</button></div>
+          <div id="todo-lists-nav">
+            <div class="tl-item active" onclick="switchList('All')" data-list="All"><div class="tl-dot" style="background:var(--accent)"></div><span class="tl-name">All Tasks</span><span class="tl-count" id="count-All">0</span></div>
+            <div class="tl-item" onclick="switchList('Personal')" data-list="Personal"><div class="tl-dot" style="background:var(--blue)"></div><span class="tl-name">Personal</span><span class="tl-count" id="count-Personal">0</span></div>
+            <div class="tl-item" onclick="switchList('Work')" data-list="Work"><div class="tl-dot" style="background:var(--accent2)"></div><span class="tl-name">Work</span><span class="tl-count" id="count-Work">0</span></div>
+            <div class="tl-item" onclick="switchList('Shopping')" data-list="Shopping"><div class="tl-dot" style="background:var(--accent3)"></div><span class="tl-name">Shopping</span><span class="tl-count" id="count-Shopping">0</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-weight:800;font-size:13px;margin-bottom:10px;">📈 Progress</div>
+          <div class="prog-wrap">
+            <div class="flex-b text-xs" style="margin-bottom:5px;"><span class="text-muted">Completed</span><span id="todo-progress-label" class="fw8">0 / 0</span></div>
+            <div class="prog-track"><div class="prog-fill" id="todo-progress-bar" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--pink))"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="todo-main">
+        <div class="todo-header">
+          <span class="fw8" id="todo-list-name" style="font-size:15px">All Tasks</span>
+          <button class="btn btn-secondary btn-sm" onclick="clearDone()">Clear Done</button>
+        </div>
+        <div class="todo-add-row">
+          <input class="f-input" id="todo-input" placeholder="Add task… press Enter" style="flex:1;min-width:140px" onkeydown="if(event.key==='Enter')addTodo()">
+          <select class="f-input" id="todo-list-sel" style="width:110px">
+            <option value="Personal">Personal</option><option value="Work">Work</option><option value="Shopping">Shopping</option>
+          </select>
+          <select class="f-input" id="todo-priority-sel" style="width:105px">
+            <option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addTodo()">Add</button>
+        </div>
+        <div id="todo-items" role="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 5 — IDEAS ════ -->
+  <div id="p-ideas" class="page" role="main">
+    <div class="ideas-top">
+      <div><div class="s-eyebrow">Thoughts</div><h1 class="s-title">💡 Idea Board</h1></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="ideas-search"><span>🔍</span><input type="search" id="note-search" placeholder="Search ideas…" oninput="searchNotes()"></div>
+        <button class="btn btn-primary" onclick="openModal('modal-note')">+ New Idea</button>
+      </div>
+    </div>
+    <div class="ideas-grid" id="ideas-grid"></div>
+  </div>
+
+  <!-- ════ PAGE 6 — HABITS ════ -->
+  <div id="p-habits" class="page" role="main">
+    <div class="habits-top">
+      <div><div class="s-eyebrow">Consistency</div><h1 class="s-title">🔥 Habit Tracker</h1><p class="s-desc">Build streaks. Build yourself.</p></div>
+      <button class="btn btn-primary" onclick="openModal('modal-habit')">+ New Habit</button>
+    </div>
+    <div class="habits-grid" id="habits-grid"></div>
+  </div>
+
+  <!-- ════ PAGE 7 — GOALS ════ -->
+  <div id="p-goals" class="page" role="main">
+    <div class="goals-top">
+      <div><div class="s-eyebrow">Vision</div><h1 class="s-title">🎯 Goals Board</h1><p class="s-desc">Dream big. Track progress. Achieve everything.</p></div>
+      <button class="btn btn-primary" onclick="openModal('modal-goal')">+ New Goal</button>
+    </div>
+    <div class="goals-layout" id="goals-grid"></div>
+  </div>
+
+  <!-- ════ PAGE 8 — FOCUS TIMER ════ -->
+  <div id="p-focus" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Productivity</div>
+      <h1 class="s-title">⏱️ Focus Timer</h1>
+      <p class="s-desc">Pomodoro technique to supercharge your focus.</p>
+    </div>
+    <div class="focus-layout">
+      <div>
+        <div class="timer-card">
+          <div style="position:relative;z-index:1;">
+            <div class="pom-dots" id="pom-dots"></div>
+            <div class="timer-ring-wrap">
+              <svg class="timer-ring" width="210" height="210" viewBox="0 0 210 210" aria-hidden="true">
+                <circle class="tr-bg" cx="105" cy="105" r="90"/>
+                <circle class="tr-fill" id="timer-ring-fill" cx="105" cy="105" r="90" stroke-dasharray="565.5" stroke-dashoffset="0"/>
+              </svg>
+              <div class="timer-display" id="timer-display" aria-live="polite">25:00</div>
+            </div>
+            <div class="timer-phase-label" id="timer-phase">Focus Session</div>
+            <div class="timer-task-label" style="font-size:12px;color:var(--muted);">Working on:</div>
+            <div class="timer-task-curr" id="focus-task-name">No task selected</div>
+            <div class="timer-controls">
+              <button class="btn btn-secondary" onclick="startTimer()">▶ Start</button>
+              <button class="btn btn-secondary" onclick="pauseTimer()">⏸ Pause</button>
+              <button class="btn btn-secondary" onclick="resetTimer()">↺ Reset</button>
+            </div>
+            <div class="timer-settings">
+              <div class="ts-group">Focus (min)<input class="f-input" id="focus-duration" type="number" value="25" min="1" max="60"></div>
+              <div class="ts-group">Break (min)<input class="f-input" id="break-duration" type="number" value="5" min="1" max="30"></div>
+              <div class="ts-group">Sessions<input class="f-input" id="sessions-count" type="number" value="4" min="1" max="10"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="focus-sidebar">
+        <div class="card">
+          <div class="fw8" style="font-size:13px;margin-bottom:10px;">🎯 Select a Task</div>
+          <div id="focus-task-list"></div>
+        </div>
+        <div class="card">
+          <div class="fw8" style="font-size:13px;margin-bottom:12px;">📊 Today's Focus Stats</div>
+          <div class="g2">
+            <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--accent)" id="focus-sessions-done">0</div><div class="text-xs text-muted">Sessions</div></div>
+            <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;"><div style="font-family:'Fredoka One',cursive;font-size:22px;color:var(--accent2)" id="focus-mins-done">0</div><div class="text-xs text-muted">Minutes</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="fw8" style="font-size:13px;margin-bottom:10px;">💡 Focus Tips</div>
+          <ul style="display:flex;flex-direction:column;gap:7px;">
+            <li class="text-sm text-muted" style="display:flex;gap:6px;"><span>🔕</span>Silence your phone</li>
+            <li class="text-sm text-muted" style="display:flex;gap:6px;"><span>💧</span>Keep water nearby</li>
+            <li class="text-sm text-muted" style="display:flex;gap:6px;"><span>📝</span>One task at a time</li>
+            <li class="text-sm text-muted" style="display:flex;gap:6px;"><span>🌿</span>Take real breaks</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 9 — MOOD ════ -->
+  <div id="p-mood" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Wellness</div>
+      <h1 class="s-title">😊 Mood Tracker</h1>
+      <p class="s-desc">Check in with yourself. Pixel cares about how you feel.</p>
+    </div>
+    <div class="mood-layout">
+      <div>
+        <div class="mood-today">
+          <div class="fw8" style="font-size:15px;margin-bottom:5px;">How are you feeling today?</div>
+          <div class="text-sm text-muted">Tap a mood and add a note.</div>
+          <div class="mood-emojis" role="group">
+            <button class="mood-emoji-btn" data-mood="Amazing" onclick="selectMood(this)">🤩</button>
+            <button class="mood-emoji-btn" data-mood="Happy" onclick="selectMood(this)">😊</button>
+            <button class="mood-emoji-btn" data-mood="Okay" onclick="selectMood(this)">😐</button>
+            <button class="mood-emoji-btn" data-mood="Tired" onclick="selectMood(this)">😴</button>
+            <button class="mood-emoji-btn" data-mood="Stressed" onclick="selectMood(this)">😰</button>
+            <button class="mood-emoji-btn" data-mood="Sad" onclick="selectMood(this)">😢</button>
+          </div>
+          <div style="display:flex;gap:9px;margin-top:14px;">
+            <input class="f-input" id="mood-note-input" placeholder="Add a note about your day…" style="flex:1">
+            <button class="btn btn-primary" onclick="logMood()">Log Mood</button>
+          </div>
+        </div>
+        <div class="fw8" style="font-size:13px;margin-bottom:10px;">📖 Mood Journal</div>
+        <div class="mood-log" id="mood-log"></div>
+      </div>
+      <div>
+        <div class="mood-stats-card">
+          <div class="fw8" style="font-size:13px;">📊 Mood Summary</div>
+          <div class="text-xs text-muted mt-sm" style="margin-top:4px;">Last entries</div>
+          <div id="mood-stats" style="margin-top:12px;"></div>
+        </div>
+        <div class="card mt-md" style="margin-top:12px;">
+          <div class="fw8" style="font-size:13px;margin-bottom:10px;">🌟 Pixel's Wellness Tips</div>
+          <ul style="display:flex;flex-direction:column;gap:8px;">
+            <li class="text-sm text-muted" style="display:flex;gap:7px;"><span>🌞</span>Get morning sunlight</li>
+            <li class="text-sm text-muted" style="display:flex;gap:7px;"><span>🏃</span>Move your body today</li>
+            <li class="text-sm text-muted" style="display:flex;gap:7px;"><span>🫁</span>Take 3 deep breaths</li>
+            <li class="text-sm text-muted" style="display:flex;gap:7px;"><span>💬</span>Talk to someone you trust</li>
+            <li class="text-sm text-muted" style="display:flex;gap:7px;"><span>📵</span>Take a screen break</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 10 — PROFILE ════ -->
+  <div id="p-profile" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Account</div>
+      <h1 class="s-title">👤 Profile & Settings</h1>
+    </div>
+    <div class="profile-layout">
+      <div>
+        <div class="profile-card">
+          <span class="profile-pet-icon">🐾</span>
+          <div class="profile-name-display">Pixel's Owner</div>
+          <div class="profile-since">Member since today ✨</div>
+          <div class="profile-stats-grid">
+            <div class="ps-item"><div class="ps-val" id="prof-tasks">0</div><div class="ps-label">Tasks Done</div></div>
+            <div class="ps-item"><div class="ps-val" id="prof-habits">0</div><div class="ps-label">Habits Kept</div></div>
+            <div class="ps-item"><div class="ps-val" id="prof-notes">0</div><div class="ps-label">Ideas Saved</div></div>
+            <div class="ps-item"><div class="ps-val" id="prof-focus">0</div><div class="ps-label">Focus Mins</div></div>
+          </div>
+          <div class="fw8 text-xs text-muted" style="text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;">Achievements</div>
+          <div class="achiev-grid">
+            <div class="achiev" title="First task">🏆</div>
+            <div class="achiev locked" title="7-habit streak">🔥</div>
+            <div class="achiev locked" title="10 ideas">💡</div>
+            <div class="achiev locked" title="60 focus mins">⏱️</div>
+            <div class="achiev locked" title="5 moods">😊</div>
+            <div class="achiev locked" title="3 goals">🎯</div>
+            <div class="achiev locked" title="Budget master">💰</div>
+            <div class="achiev locked" title="Full week planned">📅</div>
+          </div>
+        </div>
+        <div class="card mt-md" style="margin-top:12px;">
+          <div class="fw8" style="font-size:13px;margin-bottom:10px;">🎨 Pet Customization</div>
+          <div class="f-group"><label class="f-label">Pet Name</label><input class="f-input" id="pet-name-input" placeholder="Pixel" value="Pixel"></div>
+          <button class="btn btn-primary w-full btn-sm" onclick="savePetName()">Save Name</button>
+        </div>
+      </div>
+      <div>
+        <div class="settings-card">
+          <div class="fw8" style="font-size:15px;margin-bottom:4px;">⚙️ Settings</div>
+          <div class="text-sm text-muted" style="margin-bottom:18px;">Customize your Pixel experience.</div>
+          <div class="setting-row"><div><div class="si-label">Daily Reminder</div><div class="si-desc">Pixel reminds you each morning</div></div><div class="toggle on" onclick="toggleSetting(this)"></div></div>
+          <div class="setting-row"><div><div class="si-label">Budget Alerts</div><div class="si-desc">Alert when you exceed limits</div></div><div class="toggle on" onclick="toggleSetting(this)"></div></div>
+          <div class="setting-row"><div><div class="si-label">Habit Reminders</div><div class="si-desc">Daily nudge to complete habits</div></div><div class="toggle" onclick="toggleSetting(this)"></div></div>
+          <div class="setting-row"><div><div class="si-label">Pet Reactions</div><div class="si-desc">Pixel reacts when you complete tasks</div></div><div class="toggle on" onclick="toggleSetting(this)"></div></div>
+          <div class="setting-row"><div><div class="si-label">Sound Effects</div><div class="si-desc">Play sounds when Pixel is happy</div></div><div class="toggle" onclick="toggleSetting(this)"></div></div>
+        </div>
+        <div class="settings-card">
+          <div class="fw8" style="font-size:15px;margin-bottom:14px;">👤 Your Profile</div>
+          <div class="f-group"><label class="f-label">Your Name</label><input class="f-input" id="prof-name" placeholder="Your name…"></div>
+          <div class="f-group"><label class="f-label">Bio</label><input class="f-input" id="prof-bio" placeholder="Tell Pixel about yourself…"></div>
+          <div class="f-group"><label class="f-label">Main Goal</label><input class="f-input" id="prof-goal" placeholder="What do you want to achieve?"></div>
+          <div style="display:flex;gap:9px;margin-top:4px;">
+            <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Profile</button>
+            <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑️ Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PAGE 11 — SHOPPING ════ -->
+  <div id="p-shopping" class="page" role="main">
+    <div class="page-head">
+      <div class="s-eyebrow">Errands</div>
+      <h1 class="s-title">🛒 Shopping List</h1>
+      <p class="s-desc">Never forget what you need. Pixel keeps track!</p>
+    </div>
+    <div class="shop-layout">
+      <div>
+        <div class="shop-cats" role="group">
+          <button class="shop-cat-btn active" onclick="filterShop('all',this)">All</button>
+          <button class="shop-cat-btn" onclick="filterShop('groceries',this)">🥦 Groceries</button>
+          <button class="shop-cat-btn" onclick="filterShop('household',this)">🏠 Household</button>
+          <button class="shop-cat-btn" onclick="filterShop('personal',this)">🧴 Personal</button>
+          <button class="shop-cat-btn" onclick="filterShop('electronics',this)">📱 Electronics</button>
+          <button class="shop-cat-btn" onclick="filterShop('other',this)">📌 Other</button>
+        </div>
+        <div class="shop-list">
+          <div class="shop-add-row">
+            <input class="f-input" id="shop-item-name" placeholder="Item name…" style="flex:1;min-width:120px">
+            <input class="f-input" id="shop-item-qty" type="number" placeholder="Qty" min="1" value="1" style="width:72px">
+            <input class="f-input" id="shop-item-price" type="number" placeholder="Price" min="0" step="0.01" style="width:88px">
+            <select class="f-input" id="shop-item-cat" style="width:130px">
+              <option value="groceries">🥦 Groceries</option>
+              <option value="household">🏠 Household</option>
+              <option value="personal">🧴 Personal</option>
+              <option value="electronics">📱 Electronics</option>
+              <option value="other">📌 Other</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="addShopItem()">Add Item</button>
+          </div>
+          <div id="shop-list" role="list"></div>
+        </div>
+      </div>
+      <div>
+        <div class="shop-summary card">
+          <div class="fw8" style="font-size:14px;margin-bottom:14px;">🧾 Summary</div>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <div class="flex-b text-sm"><span class="text-muted">Total Items</span><span class="fw8" id="shop-total-items">0</span></div>
+            <div class="flex-b text-sm"><span class="text-muted">Checked Off</span><span class="fw8 text-green" id="shop-bought-items">0</span></div>
+            <div style="height:1px;background:var(--border)"></div>
+            <div class="flex-b" style="font-size:14px;"><span class="fw8">Estimated Total</span><span class="fw8 text-gold" id="shop-total-price">₹0.00</span></div>
+          </div>
+          <button class="btn btn-secondary w-full btn-sm mt-md" style="margin-top:12px;" onclick="clearBought()">Clear Bought Items</button>
+        </div>
+        <div class="card mt-md" style="margin-top:12px;">
+          <div class="fw8" style="font-size:13px;margin-bottom:9px;">🐾 Pixel's Tip</div>
+          <p class="text-sm text-muted" style="line-height:1.65;">"Check your pantry before adding items! Tap items when you drop them in your cart to track progress. 🛒"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-shell -->
+
+<!-- ════════════════════════════════════════════════════════
+     ONBOARDING (separate from app-shell)
+════════════════════════════════════════════════════════ -->
+<div id="p-login" class="page active" role="main">
+  <div class="ob-orb ob-orb1" aria-hidden="true"></div>
+  <div class="ob-orb ob-orb2" aria-hidden="true"></div>
+  <div class="ob-orb ob-orb3" aria-hidden="true"></div>
+  <div class="ob-card login-card">
+    <span class="ob-pet" role="img" aria-label="Pixel the virtual pet">🐾</span>
+    <div class="login-eyebrow">Pixel Workspace</div>
+    <div class="ob-title login-title">Welcome</div>
+    <p class="ob-sub">Sign in to open your dashboard right away.</p>
+    <p class="ob-desc">Budget smarter. Plan better. Never miss a thing.<br>Your pet grows with you — the more you accomplish, the happier Pixel becomes.</p>
+    <div class="ob-feats" role="list">
+      <div class="ob-feat" role="listitem">💰 Budget Tracker</div>
+      <div class="ob-feat" role="listitem">📅 Smart Calendar</div>
+      <div class="ob-feat" role="listitem">✅ To-Do + Focus</div>
+      <div class="ob-feat" role="listitem">💡 Idea Board</div>
+      <div class="ob-feat" role="listitem">🔥 Habit Streaks</div>
+      <div class="ob-feat" role="listitem">😊 Mood Journal</div>
+    </div>
+    <form class="login-form" id="login-form" onsubmit="handleLogin(event)">
+      <div class="f-group">
+        <label class="f-label" for="login-email">Email</label>
+        <input class="f-input login-input" id="login-email" type="email" placeholder="pixel@example.com" autocomplete="email" required>
+      </div>
+      <div class="f-group">
+        <label class="f-label" for="login-password">Password</label>
+        <input class="f-input login-input" id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+      </div>
+      <div class="login-row">
+        <label class="login-check">
+          <input id="login-remember" type="checkbox">
+          <span>Remember me</span>
+        </label>
+            </div>
+      <button class="ob-cta login-cta" type="submit">Log In</button>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script src="script.js"></script>
+</body>
+</html>
