@@ -279,8 +279,16 @@ function readUsers() {
 }
 
 function getRememberedSession() {
-  const session = readJson(STORAGE_KEYS.session, null);
-  return session && typeof session === 'object' ? session : null;
+  // Check localStorage first (remember me), then sessionStorage (tab session)
+  const lsSession = readJson(STORAGE_KEYS.session, null);
+  if (lsSession && typeof lsSession === 'object') return lsSession;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEYS.session);
+    const ssSession = raw ? JSON.parse(raw) : null;
+    return ssSession && typeof ssSession === 'object' ? ssSession : null;
+  } catch {
+    return null;
+  }
 }
 
 function getCurrentUserRecord() {
@@ -472,10 +480,20 @@ function saveState() {
     writeJson(STORAGE_KEYS.users, state.users);
   }
 
-  if (state.auth.remember) {
-    writeJson(STORAGE_KEYS.session, { email: state.auth.currentUserEmail, remember: true });
+  if (state.auth.currentUserEmail) {
+    const sessionData = { email: state.auth.currentUserEmail, remember: state.auth.remember };
+    if (state.auth.remember) {
+      // Persist across browser closes
+      localStorage.setItem(STORAGE_KEYS.session, JSON.stringify(sessionData));
+      sessionStorage.removeItem(STORAGE_KEYS.session);
+    } else {
+      // Only for this browser tab/session (survives refresh but not full close)
+      sessionStorage.setItem(STORAGE_KEYS.session, JSON.stringify(sessionData));
+      localStorage.removeItem(STORAGE_KEYS.session);
+    }
   } else {
     localStorage.removeItem(STORAGE_KEYS.session);
+    sessionStorage.removeItem(STORAGE_KEYS.session);
   }
 }
 
@@ -695,6 +713,7 @@ function logout() {
   state.auth.currentUserEmail = null;
   state.auth.remember = false;
   localStorage.removeItem(STORAGE_KEYS.session);
+  sessionStorage.removeItem(STORAGE_KEYS.session);
   applyData(createDefaultData());
   showLoginPage();
 }
